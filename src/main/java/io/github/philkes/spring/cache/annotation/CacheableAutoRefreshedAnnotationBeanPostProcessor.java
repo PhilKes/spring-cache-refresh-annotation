@@ -8,12 +8,11 @@ import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.annotation.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -21,6 +20,21 @@ import java.util.concurrent.TimeUnit;
 
 import static io.github.philkes.spring.cache.interceptor.CacheRefresher.CACHE_REFRESH_METHOD;
 
+/**
+ * Bean post-processor that registers methods annotated with
+ * {@link CacheableAutoRefreshed @CacheableAutoRefreshed} to be invoked by a
+ * {@link org.springframework.scheduling.TaskScheduler} according to the
+ * "fixedRate", "fixedDelay", or "cron" expression provided via the annotation
+ * and thereby refresh the annotated method's cache.
+ *
+ * <p>Autodetects any {@link SchedulingConfigurer} instances in the container,
+ * allowing for customization of the scheduler to be used or for fine-grained
+ * control over task registration (e.g. registration of {@link Trigger} tasks).
+ * See the {@link EnableScheduling @EnableScheduling} javadocs for complete usage
+ * details.
+ *
+ * @see ScheduledAnnotationBeanPostProcessor
+ */
 public class CacheableAutoRefreshedAnnotationBeanPostProcessor extends ScheduledAnnotationBeanPostProcessor {
 
     public static final String CACHEABLE_AUTO_REFRESHED_PROCESSOR_BEAN = "io.github.philkes.spring.cache.annotation.internalCacheableAutoRefreshedAnnotationBeanPostProcessor";
@@ -137,31 +151,4 @@ public class CacheableAutoRefreshedAnnotationBeanPostProcessor extends Scheduled
             }
         };
     }
-
-
-    private static Duration toDuration(long value, TimeUnit timeUnit) {
-        try {
-            return Duration.of(value, timeUnit.toChronoUnit());
-        } catch (Exception ex) {
-            throw new IllegalArgumentException(
-                    "Unsupported unit " + timeUnit + " for value \"" + value + "\": " + ex.getMessage());
-        }
-    }
-
-    private static Duration toDuration(String value, TimeUnit timeUnit) {
-        if (isDurationString(value)) {
-            return Duration.parse(value);
-        }
-        return toDuration(Long.parseLong(value), timeUnit);
-    }
-
-    private static boolean isDurationString(String value) {
-        return (value.length() > 1 && (isP(value.charAt(0)) || isP(value.charAt(1))));
-    }
-
-    private static boolean isP(char ch) {
-        return (ch == 'P' || ch == 'p');
-    }
-
-
 }

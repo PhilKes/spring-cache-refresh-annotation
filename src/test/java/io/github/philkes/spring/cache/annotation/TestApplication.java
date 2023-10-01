@@ -16,12 +16,12 @@ public class TestApplication {
     }
 
     @Bean
-    public CacheRefreshedBean beanWithCacheablRefresh(){
-        return new CacheRefreshedBean();
+    public SomeService someService(){
+        return new SomeService();
     }
     @Bean
-    public TestBean testBean(CacheRefreshedBean beanWithCacheablRefresh){
-        return new TestBean(beanWithCacheablRefresh);
+    public TestBean testBean(SomeService someService){
+        return new TestBean(someService);
     }
 
 }

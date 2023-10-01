@@ -4,6 +4,9 @@ import org.springframework.cache.interceptor.KeyGenerator;
 
 import java.lang.reflect.Method;
 
+/**
+ * Cache-key generator that uses {@link ParametersKey}s
+ */
 public class ParametersKeyGenerator implements KeyGenerator {
     public static final String PARAMETERS_KEY_GENERATOR_BEAN = "io.github.philkes.spring.cache.interceptor.internalParametersKeyGenerator";
 

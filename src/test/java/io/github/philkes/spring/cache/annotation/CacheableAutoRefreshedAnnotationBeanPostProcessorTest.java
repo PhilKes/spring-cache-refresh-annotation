@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class CacheableAutoRefreshedAnnotationBeanPostProcessorTest {
 
     @SpyBean
-    CacheRefreshedBean cacheRefreshedBean;
+    SomeService someService;
 
     @Autowired
     TestBean testBean;
@@ -37,20 +37,20 @@ class CacheableAutoRefreshedAnnotationBeanPostProcessorTest {
         // cache empty at start, so assert the method is never called by the scheduler
         await()
                 .atMost(new Duration(fixedDelay * 2, TimeUnit.MILLISECONDS))
-                .untilAsserted(() -> verify(cacheRefreshedBean, never()).getMessageWithCounter(anyString()));
+                .untilAsserted(() -> verify(someService, never()).fetchData(anyString()));
 
         String msg = "test message";
 
         for (int i = 0; i < 3; i++) {
-            assertEquals("%s (0)".formatted(msg), testBean.getStringFromCacheRefreshedBean(msg));
+            assertEquals("%s (0)".formatted(msg), testBean.fetchSomeData(msg));
         }
-        verify(cacheRefreshedBean, times(1)).getMessageWithCounter(anyString());
+        verify(someService, times(1)).fetchData(anyString());
 
         // Wait until the cache should have been refreshed 3 times
         await()
                 .atMost(new Duration(fixedDelay * 3l + 100, TimeUnit.MILLISECONDS))
-                .untilAsserted(() -> verify(cacheRefreshedBean, times(4)).getMessageWithCounter(anyString()));
-        assertEquals("%s (3)".formatted(msg), testBean.getStringFromCacheRefreshedBean(msg));
+                .untilAsserted(() -> verify(someService, times(4)).fetchData(anyString()));
+        assertEquals("%s (3)".formatted(msg), testBean.fetchSomeData(msg));
     }
 
 }

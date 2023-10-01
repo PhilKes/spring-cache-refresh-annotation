@@ -2,7 +2,6 @@ package io.github.philkes.spring.cache.interceptor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.aop.TargetSource;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
@@ -10,6 +9,10 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * Bean that defines non-args method {@link #refreshCache()} that can be scheduled by Spring to refresh all entries of
+ * a given cache
+ */
 public class CacheRefresher {
 
     public static final String CACHE_REFRESH_METHOD = "refreshCache";
@@ -17,8 +20,17 @@ public class CacheRefresher {
     private final Log logger = LogFactory.getLog(getClass());
 
     private final CacheManager cacheManager;
+    /**
+     * Bean on which the {@link #method} should be invoked on
+     */
     private final Object bean;
+    /**
+     * Method that was cached
+     */
     private final Method method;
+    /**
+     * Names of the method invocation's caches
+     */
     private final String[] cacheNames;
 
     public CacheRefresher(CacheManager cacheManager, Object bean, Method method, String[] cacheNames) {
@@ -28,7 +40,10 @@ public class CacheRefresher {
         this.cacheNames = cacheNames;
     }
 
-
+    /**
+     * Invokes the cached method with the same parameters again and stores the new return value in the cache again.
+     * The cache stays stable during executing of this method.
+     */
     public void refreshCache() {
         if (cacheNames.length == 0) {
             if (logger.isTraceEnabled()) {
@@ -53,6 +68,7 @@ public class CacheRefresher {
                     }
                     continue;
                 }
+                // TODO parallelize?
                 for (Object keyObject : nativeCache.keySet()) {
                     if (!(keyObject instanceof ParametersKey)) {
                         if (logger.isDebugEnabled()) {
@@ -82,57 +98,4 @@ public class CacheRefresher {
         }
     }
 
-    public CacheManager getCacheManager() {
-        return cacheManager;
-    }
-
-    public Object getBean() {
-        return bean;
-    }
-
-    public Method getMethod() {
-        return method;
-    }
-
-    public String[] getCacheNames() {
-        return cacheNames;
-    }
-
-    public Object getTargetObject() {
-        String name = bean.getClass().getName();
-        if (name.toLowerCase().contains("cglib")) {
-            return extractTargetObject(bean);
-        }
-        return bean;
-    }
-
-    private Object extractTargetObject(Object proxied) {
-        try {
-            return findSpringTargetSource(proxied).getTarget();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private TargetSource findSpringTargetSource(Object proxied) {
-        Method[] methods = proxied.getClass().getDeclaredMethods();
-        Method targetSourceMethod = findTargetSourceMethod(methods);
-        targetSourceMethod.setAccessible(true);
-        try {
-            return (TargetSource) targetSourceMethod.invoke(proxied);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Method findTargetSourceMethod(Method[] methods) {
-        for (Method method : methods) {
-            if (method.getName().endsWith("getTargetSource")) {
-                return method;
-            }
-        }
-        throw new IllegalStateException(
-                "Could not find target source method on proxied object ["
-                        + bean.getClass() + "]");
-    }
 }
