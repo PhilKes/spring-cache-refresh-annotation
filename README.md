@@ -25,6 +25,11 @@ This Spring library provides the [CacheableAutoRefreshed](./src/main/java/io/git
 
    The cache stays stable even while refreshing.
 
+### Supported Caches
+* Spring's [Simple Caching](https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.caching.provider.simple) with `ConcurrentHashMap`
+* [Caffeine](https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.caching.provider.caffeine)
+* TODO: Redis
+* TODO: JCache
 
 ### Configuration
 To configure the caching itself, the `@CacheableAutoRefresh` provides the same annotation parameters as `@Cacheable` (see [Spring/Cacheable](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/cache/annotation/Cacheable.html)) as well as all the parameters from the `@Scheduled` annotation (see [Spring/Scheduled](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/annotation/Scheduled.html))

@@ -1,5 +1,7 @@
-package io.github.philkes.spring.cache.annotation;
+package io.github.philkes.spring.cache.annotation.mapcache;
 
+import io.github.philkes.spring.cache.annotation.SomeService;
+import io.github.philkes.spring.cache.annotation.TestBean;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = TestApplication.class)
+@SpringBootTest(classes = MapTestApplication.class)
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-class CacheableAutoRefreshedAnnotationBeanPostProcessorTest {
+@ActiveProfiles("simple")
+class MapCacheAutoRefreshedTest {
 
     @SpyBean
     SomeService someService;
@@ -40,17 +42,21 @@ class CacheableAutoRefreshedAnnotationBeanPostProcessorTest {
                 .untilAsserted(() -> verify(someService, never()).fetchData(anyString()));
 
         String msg = "test message";
+        String msg2 = "test message2";
 
         for (int i = 0; i < 3; i++) {
-            assertEquals("%s (0)".formatted(msg), testBean.fetchSomeData(msg));
+            assertEquals("data: %s".formatted(msg), testBean.fetchSomeData(msg));
+            assertEquals("data: %s".formatted(msg2), testBean.fetchSomeData(msg2));
         }
-        verify(someService, times(1)).fetchData(anyString());
+        verify(someService, times(2)).fetchData(anyString());
 
         // Wait until the cache should have been refreshed 3 times
         await()
                 .atMost(new Duration(fixedDelay * 3l + 100, TimeUnit.MILLISECONDS))
-                .untilAsserted(() -> verify(someService, times(4)).fetchData(anyString()));
-        assertEquals("%s (3)".formatted(msg), testBean.fetchSomeData(msg));
+                // assert fetchData() was called 8 times = 2 initial invoc. + 3 refreshes * 2 cach-entries
+                .untilAsserted(() -> verify(someService, times(8)).fetchData(anyString()));
+        assertEquals("data: %s".formatted(msg), testBean.fetchSomeData(msg));
+        assertEquals("data: %s".formatted(msg2), testBean.fetchSomeData(msg2));
     }
 
 }

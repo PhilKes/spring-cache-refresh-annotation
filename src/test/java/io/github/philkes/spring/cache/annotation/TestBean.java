@@ -12,4 +12,9 @@ public class TestBean {
     public String fetchSomeData(String parameter){
         return someService.fetchData(parameter);
     }
+
+    @CacheableAutoRefreshed(cacheNames = "someCacheWithoutParams", fixedDelayString = "${test.cache.fixed.delay}")
+    public String fetchSomeData(){
+        return someService.fetchData();
+    }
 }

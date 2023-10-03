@@ -9,11 +9,16 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.annotation.*;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +28,7 @@ import static io.github.philkes.spring.cache.interceptor.CacheRefresher.CACHE_RE
 /**
  * Bean post-processor that registers methods annotated with
  * {@link CacheableAutoRefreshed @CacheableAutoRefreshed} to be invoked by a
- * {@link org.springframework.scheduling.TaskScheduler} according to the
+ * {@link TaskScheduler} according to the
  * "fixedRate", "fixedDelay", or "cron" expression provided via the annotation
  * and thereby refresh the annotated method's cache.
  *
@@ -35,7 +40,7 @@ import static io.github.philkes.spring.cache.interceptor.CacheRefresher.CACHE_RE
  *
  * @see ScheduledAnnotationBeanPostProcessor
  */
-public class CacheableAutoRefreshedAnnotationBeanPostProcessor extends ScheduledAnnotationBeanPostProcessor {
+public abstract class CacheableAutoRefreshedProcessor<NativeCache> extends ScheduledAnnotationBeanPostProcessor {
 
     public static final String CACHEABLE_AUTO_REFRESHED_PROCESSOR_BEAN = "io.github.philkes.spring.cache.annotation.internalCacheableAutoRefreshedAnnotationBeanPostProcessor";
 
@@ -43,7 +48,7 @@ public class CacheableAutoRefreshedAnnotationBeanPostProcessor extends Scheduled
 
     protected final Set<Class<?>> nonAnnotatedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
 
-    public CacheableAutoRefreshedAnnotationBeanPostProcessor(CacheManager cacheManager) {
+    protected CacheableAutoRefreshedProcessor(CacheManager cacheManager) {
         this.cacheManager = cacheManager;
     }
 
@@ -79,7 +84,7 @@ public class CacheableAutoRefreshedAnnotationBeanPostProcessor extends Scheduled
                 annotatedMethods.forEach((method, cacheableRefreshAnnotations) -> {
                             cacheableRefreshAnnotations.forEach(cacheableAutoRefreshed -> {
                                 // Schedule cache refresher just like with the default @Scheduled annotation
-                                CacheRefresher cacheRefresher = new CacheRefresher(cacheManager, bean, method, cacheableAutoRefreshed.value());
+                                CacheRefresher<NativeCache> cacheRefresher = createCacheRefresher(cacheManager, cacheableAutoRefreshed.value(), bean, method);
                                 try {
                                     processScheduled(toScheduled(cacheableAutoRefreshed), cacheRefresher.getClass().getMethod(CACHE_REFRESH_METHOD), cacheRefresher);
                                 } catch (NoSuchMethodException e) {
@@ -97,6 +102,8 @@ public class CacheableAutoRefreshedAnnotationBeanPostProcessor extends Scheduled
         }
         return bean;
     }
+
+    protected abstract CacheRefresher<NativeCache> createCacheRefresher(CacheManager cacheManager, String[] cacheNames, Object bean, Method method);
 
     private static Scheduled toScheduled(CacheableAutoRefreshed cacheableAutoRefreshed) {
         return new Scheduled() {
