@@ -7,6 +7,9 @@
     <groupId>io.github.philkes</groupId>
     <artifactId>spring-cache-refresh-annotation</artifactId>
     <version>1.0.0</version>
+    <name>Spring Cache Refresh Annotation</name>
+    <description>Spring library providing CacheableAutoRefreshed annotation to automatically refresh caches</description>
+    <url>https://github.com/PhilKes/spring-cache-refresh-annotation</url>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -130,7 +133,34 @@
                 <!-- JUnit 5 requires Surefire version 2.22.0 or higher -->
                 <version>2.22.0</version>
             </plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.8.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.0.0-M7</version>
+            </plugin>
         </plugins>
     </build>
 
