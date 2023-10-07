@@ -1,7 +1,5 @@
-package io.github.philkes.spring.cache.annotation.caffeine;
+package io.github.philkes.spring.cache.annotation;
 
-import io.github.philkes.spring.cache.annotation.SomeService;
-import io.github.philkes.spring.cache.annotation.TestBean;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,10 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = CaffeineTestApplication.class)
+@SpringBootTest(classes = TestApplication.class)
 @AutoConfigureMockMvc
-@ActiveProfiles("caffeine")
-class CaffeineCacheableAutoRefreshedTest {
+public abstract class CacheableAutoRefreshedTest {
 
     @SpyBean
     SomeService someService;
@@ -37,7 +33,7 @@ class CaffeineCacheableAutoRefreshedTest {
     void testCacheableAutoRefreshed() throws InterruptedException {
         // cache empty at start, so assert the method is never called by the scheduler
         await()
-                .atMost(new Duration(fixedDelay * 2, TimeUnit.MILLISECONDS))
+                .pollDelay(new Duration(fixedDelay * 2, TimeUnit.MILLISECONDS))
                 .untilAsserted(() -> verify(someService, never()).fetchData(anyString()));
 
         for (int i = 0; i < 3; i++) {
@@ -77,6 +73,4 @@ class CaffeineCacheableAutoRefreshedTest {
         assertEquals("data: %s".formatted(msg), testBean.fetchSomeData(msg));
         assertEquals("data: %s".formatted(msg2), testBean.fetchSomeData(msg2));
     }
-
-
 }

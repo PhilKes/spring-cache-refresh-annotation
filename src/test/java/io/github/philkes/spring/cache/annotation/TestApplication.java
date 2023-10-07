@@ -1,20 +1,18 @@
-package io.github.philkes.spring.cache.annotation.mapcache;
+package io.github.philkes.spring.cache.annotation;
 
-import io.github.philkes.spring.cache.annotation.SomeService;
-import io.github.philkes.spring.cache.annotation.TestBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(exclude = {ThymeleafAutoConfiguration.class})
+@SpringBootApplication
 @EnableCaching
 @EnableScheduling
-public class MapTestApplication {
+public class TestApplication {
+
     public static void main(String[] args) {
-        SpringApplication.run(MapTestApplication.class, args);
+        SpringApplication.run(TestApplication.class, args);
     }
 
     @Bean
@@ -25,6 +23,5 @@ public class MapTestApplication {
     public TestBean testBean(SomeService someService){
         return new TestBean(someService);
     }
-
 
 }
