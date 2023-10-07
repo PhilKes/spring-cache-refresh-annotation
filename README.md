@@ -25,9 +25,9 @@ This Spring library provides the [CacheableAutoRefreshed](./src/main/java/io/git
 
    The cache stays stable even while refreshing.
 
-### Supported Caches
-* Spring's [Simple Caching](https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.caching.provider.simple) with `ConcurrentHashMap`
-* [Caffeine](https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.caching.provider.caffeine)
+## Supported Caches
+* Spring's [Simple Caching](https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.caching.provider.simple) with `ConcurrentHashMap` (synchronously reloads all cached entries)
+* [Caffeine](https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.caching.provider.caffeine) (utilizes the async reloading of all cache entries via [LoadingCache.refreshAll()](https://javadoc.io/doc/com.github.ben-manes.caffeine/caffeine/latest/com.github.benmanes.caffeine/com/github/benmanes/caffeine/cache/LoadingCache.html))
 * TODO: Redis
 * TODO: JCache
 

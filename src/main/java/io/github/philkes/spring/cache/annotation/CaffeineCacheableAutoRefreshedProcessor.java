@@ -34,7 +34,7 @@ public class CaffeineCacheableAutoRefreshedProcessor extends CacheableAutoRefres
         policy.refreshAfterWrite().ifPresent(refreshAfterWrite -> builder.refreshAfterWrite(refreshAfterWrite.getRefreshesAfter()));
         policy.expireAfterAccess().ifPresent(expireAfterAcces -> builder.expireAfterAccess(expireAfterAcces.getExpiresAfter()));
         policy.expireAfterWrite().ifPresent(expireAfterWrite -> builder.expireAfterWrite(expireAfterWrite.getExpiresAfter()));
-        if(policy.isRecordingStats()){
+        if (policy.isRecordingStats()) {
             builder.recordStats();
         }
         return builder.build(cacheLoader);
@@ -43,18 +43,19 @@ public class CaffeineCacheableAutoRefreshedProcessor extends CacheableAutoRefres
 
     /**
      * Build {@link CacheRefresher} for Caffeine cache.
-     * The internal caffeine cache ist customised for manual refreshes via {@link LoadingCache#refreshAll(Iterable)}
+     * The internal caffeine caches are customised for manual asynchronous refreshes via {@link LoadingCache#refreshAll(Iterable)}
      */
     @Override
     protected CacheRefresher<LoadingCache<Object, @Nullable Object>> createCacheRefresher(CacheManager cacheManager, String[] cacheNames, Object bean, Method method) {
         Map<String, LoadingCache<Object, @Nullable Object>> caches = Arrays.stream(cacheNames).collect(Collectors.toMap(cacheName -> cacheName, cacheName -> {
             Cache cache = cacheManager.getCache(cacheName);
             if (cache instanceof CaffeineCache caffeineCache) {
-                LoadingCache<Object, Object> customCache = fromCache(caffeineCache.getNativeCache(), (key) -> method.invoke(bean, ((ParametersKey) key).getParams()));
+                LoadingCache<Object, Object> customCache = fromCache(caffeineCache.getNativeCache(), key -> method.invoke(bean, ((ParametersKey) key).getParams()));
                 ((CaffeineCacheManager) cacheManager).registerCustomCache(cacheName, customCache);
                 return customCache;
+            } else {
+                throw new RuntimeException("Cache '%s' is not of type '%s'!".formatted(cacheName, CaffeineCache.class.getSimpleName()));
             }
-            return null;
         }));
 
         return new CacheRefresher<>(caches, bean, method) {

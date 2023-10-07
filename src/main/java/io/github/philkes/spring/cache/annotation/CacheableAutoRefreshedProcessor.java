@@ -38,9 +38,10 @@ import static io.github.philkes.spring.cache.interceptor.CacheRefresher.CACHE_RE
  * See the {@link EnableScheduling @EnableScheduling} javadocs for complete usage
  * details.
  *
+ * @param <C> type of the used native-cache, e.g. {@link Map} or {@link com.github.benmanes.caffeine.cache.LoadingCache}
  * @see ScheduledAnnotationBeanPostProcessor
  */
-public abstract class CacheableAutoRefreshedProcessor<NativeCache> extends ScheduledAnnotationBeanPostProcessor {
+public abstract class CacheableAutoRefreshedProcessor<C> extends ScheduledAnnotationBeanPostProcessor {
 
     public static final String CACHEABLE_AUTO_REFRESHED_PROCESSOR_BEAN = "io.github.philkes.spring.cache.annotation.internalCacheableAutoRefreshedAnnotationBeanPostProcessor";
 
@@ -81,17 +82,15 @@ public abstract class CacheableAutoRefreshedProcessor<NativeCache> extends Sched
                     logger.trace("No @CacheableAutoRefreshed annotations found on bean class: " + targetClass);
                 }
             } else {
-                annotatedMethods.forEach((method, cacheableRefreshAnnotations) -> {
-                            cacheableRefreshAnnotations.forEach(cacheableAutoRefreshed -> {
-                                // Schedule cache refresher just like with the default @Scheduled annotation
-                                CacheRefresher<NativeCache> cacheRefresher = createCacheRefresher(cacheManager, cacheableAutoRefreshed.value(), bean, method);
-                                try {
-                                    processScheduled(toScheduled(cacheableAutoRefreshed), cacheRefresher.getClass().getMethod(CACHE_REFRESH_METHOD), cacheRefresher);
-                                } catch (NoSuchMethodException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            });
-                        }
+                annotatedMethods.forEach((method, cacheableRefreshAnnotations) -> cacheableRefreshAnnotations.forEach(cacheableAutoRefreshed -> {
+                            // Schedule cache refresher just like with the default @Scheduled annotation
+                            CacheRefresher<C> cacheRefresher = createCacheRefresher(cacheManager, cacheableAutoRefreshed.value(), bean, method);
+                            try {
+                                processScheduled(toScheduled(cacheableAutoRefreshed), cacheRefresher.getClass().getMethod(CACHE_REFRESH_METHOD), cacheRefresher);
+                            } catch (NoSuchMethodException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
                 );
 
                 if (logger.isTraceEnabled()) {
@@ -103,7 +102,7 @@ public abstract class CacheableAutoRefreshedProcessor<NativeCache> extends Sched
         return bean;
     }
 
-    protected abstract CacheRefresher<NativeCache> createCacheRefresher(CacheManager cacheManager, String[] cacheNames, Object bean, Method method);
+    protected abstract CacheRefresher<C> createCacheRefresher(CacheManager cacheManager, String[] cacheNames, Object bean, Method method);
 
     private static Scheduled toScheduled(CacheableAutoRefreshed cacheableAutoRefreshed) {
         return new Scheduled() {

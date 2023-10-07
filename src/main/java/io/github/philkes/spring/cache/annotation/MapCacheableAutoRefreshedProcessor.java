@@ -1,6 +1,5 @@
 package io.github.philkes.spring.cache.annotation;
 
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.github.philkes.spring.cache.interceptor.CacheRefresher;
 import io.github.philkes.spring.cache.interceptor.ParametersKey;
 import org.springframework.cache.Cache;
@@ -29,10 +28,11 @@ public class MapCacheableAutoRefreshedProcessor extends CacheableAutoRefreshedPr
     protected CacheRefresher<Map<Object, Object>> createCacheRefresher(CacheManager cacheManager, String[] cacheNames, Object bean, Method method) {
         Map<String, Map<Object, Object>> caches  = Arrays.stream(cacheNames).collect(Collectors.toMap(cacheName -> cacheName, cacheName -> {
             Cache cache = cacheManager.getCache(cacheName);
-            if (cache != null && cache.getNativeCache() != null && cache.getNativeCache() instanceof Map<?, ?> mapCache) {
+            if (cache != null && cache.getNativeCache() instanceof Map<?, ?> mapCache) {
                 return (Map<Object, Object>) mapCache;
+            } else {
+                throw new RuntimeException("Cache '%s' is not of type '%s'!".formatted(cacheName, Map.class.getSimpleName()));
             }
-            return null;
         }));
         return new CacheRefresher<>(caches, bean, method){
             @Override

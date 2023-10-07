@@ -7,7 +7,7 @@ import org.springframework.cache.interceptor.SimpleKey;
  */
 public class ParametersKey extends SimpleKey {
 
-    private final Object[] params;
+    private final transient Object[] params;
     public ParametersKey(Object... params) {
         super(params);
         this.params = params;
