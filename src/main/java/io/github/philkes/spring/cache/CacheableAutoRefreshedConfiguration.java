@@ -5,24 +5,26 @@ import io.github.philkes.spring.cache.annotation.CaffeineCacheableAutoRefreshedP
 import io.github.philkes.spring.cache.annotation.MapCacheableAutoRefreshedProcessor;
 import io.github.philkes.spring.cache.interceptor.ParametersKeyGenerator;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 
 import static io.github.philkes.spring.cache.annotation.CaffeineCacheableAutoRefreshedProcessor.CACHEABLE_AUTO_REFRESHED_PROCESSOR_BEAN;
 import static io.github.philkes.spring.cache.interceptor.ParametersKeyGenerator.PARAMETERS_KEY_GENERATOR_BEAN;
 
 /**
- * {@code @Configuration} class that registers a {@link CaffeineCacheableAutoRefreshedProcessor}
- * bean capable of processing the @{@link io.github.philkes.spring.cache.annotation.CacheableAutoRefreshed} annotation.
+ * Configuration class that registers the correct {@link CacheableAutoRefreshedProcessor} bean, based on the configured {@link CacheManager},
+ *  capable of processing the @{@link io.github.philkes.spring.cache.annotation.CacheableAutoRefreshed} annotation.
  *
  * <p>This configuration class is automatically imported.
  */
-@Configuration
+@AutoConfiguration(after = CacheAutoConfiguration.class)
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class CacheableAutoRefreshedConfiguration {
 
@@ -33,15 +35,18 @@ public class CacheableAutoRefreshedConfiguration {
     }
 
 
+    @ConditionalOnBean(CaffeineCacheManager.class)
     @Bean(name = CACHEABLE_AUTO_REFRESHED_PROCESSOR_BEAN)
-    public CacheableAutoRefreshedProcessor<?> caffeineCacheableAutoRefreshedAnnotationProcessor(CacheManager cacheManager) {
-        if (cacheManager instanceof CaffeineCacheManager) {
-            return new CaffeineCacheableAutoRefreshedProcessor(cacheManager);
-        } else if (cacheManager instanceof ConcurrentMapCacheManager) {
-            return new MapCacheableAutoRefreshedProcessor(cacheManager);
-        } else {
-            throw new IllegalArgumentException("CacheManager of type '%s' is not supported by spring-cache-refresh-annotation!".formatted(cacheManager.getClass().getSimpleName()));
-        }
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public CaffeineCacheableAutoRefreshedProcessor caffeineCacheableAutoRefreshedAnnotationProcessor(CaffeineCacheManager cacheManager) {
+        return new CaffeineCacheableAutoRefreshedProcessor(cacheManager);
+    }
+
+    @ConditionalOnBean(ConcurrentMapCacheManager.class)
+    @Bean(name = CACHEABLE_AUTO_REFRESHED_PROCESSOR_BEAN)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public MapCacheableAutoRefreshedProcessor mapCacheableAutoRefreshedAnnotationProcessor(CacheManager cacheManager) {
+        return new MapCacheableAutoRefreshedProcessor(cacheManager);
     }
 
 }
