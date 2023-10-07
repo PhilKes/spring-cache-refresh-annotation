@@ -1,4 +1,6 @@
 # Spring Cache-refresh Annotation
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.philkes/spring-cache-refresh-annotation/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.philkes/spring-cache-refresh-annotation)
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue)](./LICENSE)
 
 This Spring library provides the [CacheableAutoRefreshed](./src/main/java/io/github/philkes/spring/cache/annotation/CacheableAutoRefreshed.java) annotation which extends the functionality of Spring's [Cacheable](https://www.baeldung.com/spring-cache-tutorial#1-cacheable) annotation, to automatically refresh the cache at a specified point/interval in time.
 
