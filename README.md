@@ -32,7 +32,7 @@ This Spring library provides the [CacheableAutoRefreshed](./src/main/java/io/git
 * TODO: JCache
 
 ### Configuration
-To configure the caching itself, the `@CacheableAutoRefresh` provides the same annotation parameters as `@Cacheable` (see [Spring/Cacheable](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/cache/annotation/Cacheable.html)) as well as all the parameters from the `@Scheduled` annotation (see [Spring/Scheduled](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/annotation/Scheduled.html))
+To configure the caching itself, the `@CacheableAutoRefresh` provides the same annotation parameters as `@Cacheable` (see [Spring/Cacheable](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/cache/annotation/Cacheable.html)) as well as all the parameters from the `@Scheduled` annotation (see [Spring/Scheduled](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/annotation/Scheduled.html)), to specify when the cache should be refreshed (e.g. via a duration interval, cron expression)
 
 
 ## Dependencies
